@@ -1,0 +1,229 @@
+<?php
+
+/**
+ * @file
+ * Defines the veritrans payment gateway.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function uc_veritrans_menu() {
+  $items = array();
+
+  $items['vt_web/%uc_order'] = array(
+    'title' => 'Veritrans Payment Complete',
+    'page callback' => 'uc_veritrans_vtweb_payment_complete',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_veritrans.inc',
+  );
+
+  $items['vt_web/notify'] = array(
+    'title' => 'Vt Web Payment Notificataion',
+    'page callback' => 'uc_veritrans_vt_web_payment_notification',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_veritrans.inc',
+  );
+
+  $items['vt_web/success'] = array(
+    'title' => 'Veritrans Payment Complete',
+    'page callback' => 'uc_veritrans_vt_web_payment_success',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_veritrans.inc',
+  );
+
+  $items['vt_web/unfinish'] = array(
+    'title' => 'Payment Is Not Complete',
+    'page callback' => 'uc_veritrans_vt_web_payment_unfinish',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_veritrans.inc',
+  );
+
+  $items['vt_web/error'] = array(
+    'title' => 'Veritrans Payment Error',
+    'page callback' => 'uc_veritrans_vt_web_payment_error',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_veritrans.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_uc_payment_method().
+ */
+function uc_veritrans_uc_payment_method() {
+  $methods['vt_web'] = array(
+    'name' => t('Veritrans'),
+    'title' => t('Veritrans'),
+    'review' => t('Veritrans'),
+    'desc' => t('Redirect users to submit payments through Veritrans.'),
+    'callback' => 'uc_veritrans_payment_method_vt_web',
+    'redirect' => 'uc_veritrans_vt_web_payment_form',
+    'weight' => 1,
+    'checkout' => FALSE,
+    'no_gateway' => TRUE,
+  );
+  return $methods;
+}
+
+/**
+ * Veritrans checkout page alter.
+ */
+function uc_veritrans_vt_web_payment_form($form, &$form_state, $order) {
+  $form['#action'] = url('vt_web/' . $order->order_id);
+  $form['#method'] = 'GET';
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Proceed to payment'),
+  );
+  return $form;
+}
+
+/**
+ * Veritrans settings page.
+ */
+function uc_veritrans_payment_method_vt_web($op, &$arg1) {
+  switch ($op) {
+    case 'settings':
+      $form['uc_veritrans_server_key'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Server Key'),
+        '#description' => t('Your Veritrans Server key.'),
+        '#default_value' => variable_get('uc_veritrans_server_key', ''),
+        '#size' => 50,
+        '#required' => TRUE,
+      );
+
+      $form['uc_veritrans_payment_mode'] = array(
+        '#type' => 'select',
+        '#title' => t('Payment mode'),
+        '#description' => t('The mode for capturing payment.'),
+        '#options' => array(
+          'LIVE' => t('Production/Real Transaction'),
+          'TEST' => t('Sandbox/Testing transactions'),
+        ),
+        '#default_value' => variable_get('uc_veritrans_payment_mode', ''),
+      );
+
+      $form['uc_veritrans_3ds_mode'] = array(
+        '#type' => 'select',
+        '#title' => t('Creditcard 3D Secure'),
+        '#description' => t('Enable Credit Card 3D Secure.'),
+        '#options' => array(
+          'ON' => t('On'),
+          'OFF' => t('Off'),
+        ),
+        '#default_value' => variable_get('uc_veritrans_3ds_mode', ''),
+      );
+      $form['uc_veritrans_error_redirect_url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Error Url'),
+        '#description' => t('The mode for error url.'),
+        '#default_value' => variable_get('uc_veritrans_error_redirect_url', ''),
+        '#element_validate' => array('uc_veritrans_link_validate'),
+      );
+      $form['uc_veritrans_unfinish_redirect_url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Unfinish Url'),
+        '#description' => t('The mode for unfinish url.'),
+        '#default_value' => variable_get('uc_veritrans_unfinish_redirect_url', ''),
+        '#element_validate' => array('uc_veritrans_link_validate'),
+      );
+      $form['uc_veritrans_finish_redirect_url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Finish Url'),
+        '#description' => t('The mode for finish url.'),
+        '#default_value' => variable_get('uc_veritrans_finish_redirect_url', ''),
+        '#element_validate' => array('uc_veritrans_link_validate'),
+      );
+      // Payment method list
+      // $form['uc_veritrans_pm_credit_card'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('Credit Card'),
+      //   '#description' => t('Enable Credit Card payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_credit_card', TRUE),
+      // );
+      // $form['uc_veritrans_pm_bank_transfer'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('Bank Transfer'),
+      //   '#description' => t('Enable bank transfer (virtual account) payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_bank_transfer', TRUE),
+      // );
+      // $form['uc_veritrans_pm_mandir_bill'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('Mandiri Bill Payment'),
+      //   '#description' => t('Enable Mandiri Bill payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_mandir_bill', TRUE),
+      // );
+      // $form['uc_veritrans_pm_mandiri_clickpay'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('Mandiri Clickpay'),
+      //   '#description' => t('Enable Mandiri Clickpay payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_mandiri_clickpay', TRUE),
+      // );
+      // $form['uc_veritrans_pm_cimb_clicks'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('CIMB Clicks'),
+      //   '#description' => t('Enable CIMB Clicks payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_cimb_clicks', TRUE),
+      // );
+      // $form['uc_veritrans_pm_bri_epay'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('BRI Epay'),
+      //   '#description' => t('Enable BRI Epay payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_bri_epay', TRUE),
+      // );
+      // $form['uc_veritrans_pm_telkomsel_cash'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('Telkomsel TCash'),
+      //   '#description' => t('Enable Telkomsel TCash payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_telkomsel_cash', TRUE),
+      // );
+      // $form['uc_veritrans_pm_xl_tunai'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('XL Tunai'),
+      //   '#description' => t('Enable XL Tunai payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_xl_tunai', TRUE),
+      // );
+      // $form['uc_veritrans_pm_indomaret'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('Indomaret Pay'),
+      //   '#description' => t('Enable Indomaret Pay payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_indomaret', TRUE),
+      // );
+      // $form['uc_veritrans_pm_mandiri_ecash'] = array(
+      //   '#type' => 'checkbox',
+      //   '#title' => t('Mandiri Ecash'),
+      //   '#description' => t('Enable Mandiri Ecash payment method in VT Web.'),
+      //   '#default_value' => variable_get('uc_veritrans_pm_mandiri_ecash', TRUE),
+      // );
+      // End of payment method list
+      $form['uc_veritrans_debugging'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Debug'),
+        '#description' => t('Debug log the response from veritrans (for developer).'),
+        '#default_value' => variable_get('uc_veritrans_debugging', FALSE),
+      );
+      return $form;
+  }
+}
+
+/**
+ * Link Validation.
+ */
+function uc_veritrans_link_validate($element, &$form_state) {
+  $element_name = $element['#name'];
+  $values = $form_state['values'];
+  $path = drupal_get_normal_path($values[$element_name]);
+  if (!trim($path) || !drupal_valid_path($path, TRUE)) {
+    form_set_error($element_name, t("The path '@path' is invalid.", array('@path' => $path)));
+  }
+}

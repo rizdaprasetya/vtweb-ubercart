@@ -1,0 +1,15 @@
+name = Ubercart Veritrans
+description = Process payments using Veritrans as payment gateway.
+dependencies[] = uc_order
+dependencies[] = uc_payment
+dependencies[] = uc_cart
+package = Ubercart - payment
+core = 7.x
+php = 5.3
+
+; Information added by Drupal.org packaging script
+version = "7.x-1.1"
+core = "7.x"
+project = "ubercart_veritrans"
+datestamp = "1447658950"
+

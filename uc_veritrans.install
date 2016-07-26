@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * @file
+ * Installation of ubercart veritrans module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function uc_veritrans_requirements($phase) {
+  $requirements = array();
+  if ($phase == 'runtime' || $phase == 'install') {
+    $t = get_t();
+    $has_curl = function_exists('curl_init');
+    $requirements['uc_veritrans_curl'] = array(
+      'title' => $t('CURL'),
+      'value' => $has_curl ? $t('Enabled') : $t('Not found'),
+      'description' => '',
+      'severity' => REQUIREMENT_OK,
+    );
+    if (!$has_curl) {
+      $requirements['uc_veritrans_curl']['severity'] = REQUIREMENT_ERROR;
+      $url = l($t('cURL'), "http://php.net/manual/en/curl.setup.php");
+      $requirements['uc_veritrans_curl']['description'] = $t('UC Veritrans could not be installed because the PHP !cURL library is not available.', array('!cURL' => $url));
+    }
+    $requirements['veritrans']['title'] = 'Veritrans';
+    $requirements['veritrans']['value'] = $t('Installed');
+    $veritrans_class = drupal_get_path('module', 'uc_veritrans') . '/veritrans/Veritrans.php';
+    if (file_exists($veritrans_class)) {
+      $requirements['veritrans']['severity'] = REQUIREMENT_OK;
+    }
+    elseif (file_exists(dirname(__FILE__).'/veritranspay/library/veritrans/Veritrans.php')) {
+      $requirements['veritrans']['severity'] = REQUIREMENT_OK;
+    }
+    elseif (!drupal_installation_attempted()) {
+      // Required veritrans library wasn't found; abort installation.
+      $requirements['veritrans']['value'] = $t('Not found');
+      // Provide a download link to the Veritrans library.
+      $requirements['veritrans']['description'] = $t('Veritrans library is missing, Please click !here to download the library.', array('!here' => $download_link));
+      $requirements['veritrans']['severity'] = REQUIREMENT_ERROR;
+    }
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_install().
+ */
+function uc_veritrans_install() {
+  $t = get_t();
+
+  variable_set('uc_veritrans_payment_mode', 'TEST');
+  variable_set('uc_veritrans_payment_mode', 'ON');
+  variable_set('uc_veritrans_error_redirect_url', 'vt_web/error');
+  variable_set('uc_veritrans_unfinish_redirect_url', 'vt_web/unfinish');
+  variable_set('uc_veritrans_finish_redirect_url', 'vt_web/success');
+  variable_set('uc_veritrans_debugging', FALSE);
+
+  db_merge('uc_order_statuses')
+  ->key(array('order_status_id' => 'veritrans_pending'))
+  ->insertFields(array(
+    'order_status_id' => 'veritrans_pending',
+    'title' => $t('Veritrans pending'),
+    'state' => 'post_checkout',
+    'weight' => 11,
+    'locked' => 1,
+  ))
+  ->updateFields(array(
+    'state' => 'post_checkout',
+    'locked' => 1,
+  ))
+  ->execute();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function uc_veritrans_uninstall() {
+  db_update('uc_order_statuses')
+    ->fields(array(
+      'locked' => 0,
+    ))
+    ->condition('order_status_id', 'veritrans_pending')
+    ->execute();
+
+  db_delete('variable')
+      ->condition('name', "uc_veritrans_%", "LIKE")
+      ->execute();
+
+  cache_clear_all('variables', 'cache_bootstrap');
+}
