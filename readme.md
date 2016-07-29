@@ -32,7 +32,7 @@ Payment Method Feature:
 
 The manual installation method involves downloading our plugin and uploading it to your webserver via your FTP application.
 
-1. [Download](//archive/master.zip) the plugin from this repository to your computer and unzip it
+1. [Download](/archive/master.zip) the plugin from this repository to your computer and unzip it
 2. Rename the folder (that contain this readme and other files) to `ubercart_veritrans`
 3. Using an FTP program, or your hosting control panel, upload the `ubercart_veritrans` folder to your Drupal installation's `/modules/` directory.
 4. Make sure the structure look like this: `[Drupal folder]/modules/ubercart_veritrans/uc_veritrans.module (along with the other files).`
