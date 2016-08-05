@@ -76,9 +76,9 @@ function uc_veritrans_vtweb_payment_complete($order) {
   }
 
   // set redirection urls param
-  $finish_redirect_url = variable_get('uc_veritrans_finish_redirect_url', 'vt_web/success');
-  $unfinish_redirect_url = variable_get('uc_veritrans_unfinish_redirect_url', 'vt_web/unfinish');
-  $error_redirect_url = variable_get('uc_veritrans_error_redirect_url', 'vt_web/error');
+  // $finish_redirect_url = variable_get('uc_veritrans_finish_redirect_url', 'vt_web/success');
+  // $unfinish_redirect_url = variable_get('uc_veritrans_unfinish_redirect_url', 'vt_web/unfinish');
+  // $error_redirect_url = variable_get('uc_veritrans_error_redirect_url', 'vt_web/error');
 
   // build vtweb param
   $params = array(

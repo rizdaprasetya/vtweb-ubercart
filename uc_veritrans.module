@@ -123,27 +123,27 @@ function uc_veritrans_payment_method_vt_web($op, &$arg1) {
         ),
         '#default_value' => variable_get('uc_veritrans_3ds_mode', ''),
       );
-      $form['uc_veritrans_error_redirect_url'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Error Url'),
-        '#description' => t('The mode for error url.'),
-        '#default_value' => variable_get('uc_veritrans_error_redirect_url', ''),
-        '#element_validate' => array('uc_veritrans_link_validate'),
-      );
-      $form['uc_veritrans_unfinish_redirect_url'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Unfinish Url'),
-        '#description' => t('The mode for unfinish url.'),
-        '#default_value' => variable_get('uc_veritrans_unfinish_redirect_url', ''),
-        '#element_validate' => array('uc_veritrans_link_validate'),
-      );
-      $form['uc_veritrans_finish_redirect_url'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Finish Url'),
-        '#description' => t('The mode for finish url.'),
-        '#default_value' => variable_get('uc_veritrans_finish_redirect_url', ''),
-        '#element_validate' => array('uc_veritrans_link_validate'),
-      );
+      // $form['uc_veritrans_error_redirect_url'] = array(
+      //   '#type' => 'textfield',
+      //   '#title' => t('Error Url'),
+      //   '#description' => t('The mode for error url.'),
+      //   '#default_value' => variable_get('uc_veritrans_error_redirect_url', ''),
+      //   '#element_validate' => array('uc_veritrans_link_validate'),
+      // );
+      // $form['uc_veritrans_unfinish_redirect_url'] = array(
+      //   '#type' => 'textfield',
+      //   '#title' => t('Unfinish Url'),
+      //   '#description' => t('The mode for unfinish url.'),
+      //   '#default_value' => variable_get('uc_veritrans_unfinish_redirect_url', ''),
+      //   '#element_validate' => array('uc_veritrans_link_validate'),
+      // );
+      // $form['uc_veritrans_finish_redirect_url'] = array(
+      //   '#type' => 'textfield',
+      //   '#title' => t('Finish Url'),
+      //   '#description' => t('The mode for finish url.'),
+      //   '#default_value' => variable_get('uc_veritrans_finish_redirect_url', ''),
+      //   '#element_validate' => array('uc_veritrans_link_validate'),
+      // );
       // Payment method list
       // $form['uc_veritrans_pm_credit_card'] = array(
       //   '#type' => 'checkbox',
